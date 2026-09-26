@@ -3,388 +3,1697 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cargo Run Builder - Newton Physics Simulator</title>
+    <title>BRIDGE ENGINEER - Media Pembelajaran Fisika Kelas XI</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            900: '#7c2d12',
+                        },
+                        navy: {
+                            800: '#0f172a',
+                            900: '#020617',
+                            950: '#01040d'
+                        },
+                        steel: {
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            700: '#334155',
+                            800: '#1e293b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body {
-            touch-action: manipulation;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
             user-select: none;
         }
-        canvas {
-            border-radius: 8px;
-            background: linear-gradient(to bottom, #87CEEB 0%, #e0f6ff 70%, #870000 70%, #4a2e00 100%);
+        .bg-grid-pattern {
+            background-size: 30px 30px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+        }
+        .glow-orange {
+            box-shadow: 0 0 25px -5px rgba(249, 115, 22, 0.4);
+        }
+        .glow-cyan {
+            box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.4);
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f97316;
+        }
+        /* Pulse Animation */
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.02); }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 3s infinite ease-in-out;
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+<body class="bg-navy-900 min-h-screen flex flex-col justify-between overflow-x-hidden bg-grid-pattern">
 
-    <!-- Header / Navbar -->
-    <header class="bg-slate-800 border-b border-slate-700 p-3 flex justify-between items-center shadow-md">
-        <div>
-            <h1 class="text-lg font-bold text-sky-400">Cargo Run Builder</h1>
-            <p class="text-xs text-slate-400">Simulator Hukum Newton & Resultan Gaya</p>
-        </div>
-        <div id="statusBadge" class="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full text-xs font-semibold">
-            Fase Perancangan
+    <!-- TOP HEADER / NAVBAR -->
+    <header class="border-b border-slate-800 bg-navy-950/80 backdrop-blur sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="goToScreen('welcome')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-brand-600/30">
+                    🏗️
+                </div>
+                <div>
+                    <h1 class="font-heading font-extrabold text-lg md:text-xl tracking-tight text-white flex items-center gap-2">
+                        BRIDGE ENGINEER
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-500 border border-brand-500/30">FISIKA XI</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Team Physics Challenge • Hukum Newton</p>
+                </div>
+            </div>
+
+            <!-- Header Quick Info (Shown after Team Setup) -->
+            <div id="headerTeamInfo" class="hidden flex items-center gap-4 text-xs md:text-sm">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-lg px-3 py-1.5 flex items-center gap-2">
+                    <i class="fa-solid fa-users text-brand-500"></i>
+                    <span id="headerTeamName" class="font-semibold text-slate-200">Newton Engineers</span>
+                </div>
+                <button onclick="openTeacherMode()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-chalkboard-user text-cyan-400"></i> Teacher Mode
+                </button>
+            </div>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="flex-1 p-2 md:p-4 max-w-5xl mx-auto w-full flex flex-col gap-3">
-        
-        <!-- Canvas Viewer -->
-        <div class="relative w-full aspect-[16/9] bg-slate-950 rounded-lg overflow-hidden border border-slate-700 shadow-xl">
-            <canvas id="simCanvas" class="w-full h-full block"></canvas>
+    <!-- MAIN CONTAINER FOR SCREENS -->
+    <main class="flex-grow flex items-center justify-center p-3 md:p-6 max-w-7xl w-full mx-auto">
+
+        <!-- ========================================== -->
+        <!-- SCREEN 0: WELCOME & HERO LANDING           -->
+        <!-- ========================================== -->
+        <section id="screen-welcome" class="w-full max-w-4xl py-6 animate-fadeIn">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 md:p-10 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+                <!-- Background decorative elements -->
+                <div class="absolute -right-20 -top-20 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="text-center max-w-2xl mx-auto space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-amber-400 text-xs font-mono">
+                        <i class="fa-solid fa-compass-drafting"></i> SIMULASI KERJA KELOMPOK
+                    </div>
+
+                    <h1 class="text-4xl md:text-6xl font-extrabold font-heading text-white tracking-tight leading-tight">
+                        BRIDGE <span class="bg-gradient-to-r from-brand-500 via-amber-400 to-amber-200 bg-clip-text text-transparent">ENGINEER</span>
+                    </h1>
+
+                    <p class="text-base md:text-lg text-slate-300 font-medium italic">
+                        "Can your team build a bridge that survives the laws of physics?"
+                    </p>
+
+                    <!-- Interactive SVG Graphic Illustration -->
+                    <div class="my-6 bg-slate-950/80 border border-slate-800 rounded-xl p-4 flex justify-center items-center shadow-inner relative overflow-hidden">
+                        <svg viewBox="0 0 600 180" class="w-full max-w-lg h-auto">
+                            <!-- Sky grid lines -->
+                            <line x1="0" y1="140" x2="600" y2="140" stroke="#334155" stroke-width="3" />
+                            <!-- Water / Ravine -->
+                            <rect x="150" y="142" width="300" height="38" fill="#0284c7" fill-opacity="0.2" />
+                            <path d="M 150 155 Q 225 150 300 155 T 450 155" stroke="#38bdf8" stroke-width="1.5" fill="none" opacity="0.6" />
+                            
+                            <!-- Piers / Supports -->
+                            <rect x="120" y="80" width="30" height="60" fill="#475569" rx="3" />
+                            <rect x="450" y="80" width="30" height="60" fill="#475569" rx="3" />
+                            
+                            <!-- Triangular Truss Structure -->
+                            <polygon points="135,80 210,30 285,80" stroke="#f97316" stroke-width="3" fill="none" />
+                            <polygon points="285,80 360,30 435,80" stroke="#f97316" stroke-width="3" fill="none" />
+                            <polygon points="210,30 285,80 360,30" stroke="#38bdf8" stroke-width="2" fill="none" />
+                            <line x1="135" y1="80" x2="465" y2="80" stroke="#f59e0b" stroke-width="5" />
+                            <line x1="210" y1="30" x2="360" y2="30" stroke="#f97316" stroke-width="3" />
+                            
+                            <!-- Force Vectors -->
+                            <!-- Weight -->
+                            <g class="animate-bounce">
+                                <line x1="300" y1="20" x2="300" y2="70" stroke="#ef4444" stroke-width="3" marker-end="url(#arrow)" />
+                                <text x="310" y="45" fill="#ef4444" font-size="12" font-weight="bold">W = mg</text>
+                            </g>
+                            <!-- Reactions -->
+                            <line x1="135" y1="120" x2="135" y2="85" stroke="#22c55e" stroke-width="3" />
+                            <text x="100" y="110" fill="#22c55e" font-size="11" font-weight="bold">R_A</text>
+                            <line x1="465" y1="120" x2="465" y2="85" stroke="#22c55e" stroke-width="3" />
+                            <text x="475" y="110" fill="#22c55e" font-size="11" font-weight="bold">R_B</text>
+
+                            <!-- Vehicle -->
+                            <rect x="270" y="65" width="60" height="15" fill="#eab308" rx="3" />
+                            <circle cx="282" cy="80" r="4" fill="#000" />
+                            <circle cx="318" cy="80" r="4" fill="#000" />
+                        </svg>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+                        <button onclick="goToScreen('team-setup')" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-600 text-white font-bold text-lg shadow-lg shadow-brand-600/30 hover:shadow-brand-600/50 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-3">
+                            <i class="fa-solid fa-play"></i> MULAI MISI
+                        </button>
+                        <button onclick="toggleModal('modal-rules', true)" class="w-full sm:w-auto px-6 py-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-base transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-book-open text-amber-400"></i> CARA BERMAIN
+                        </button>
+                    </div>
+
+                    <p class="text-xs text-slate-400 pt-2">
+                        <i class="fa-solid fa-circle-info text-cyan-400"></i> Direkomendasikan dimainkan oleh 1 kelompok (4–5 siswa) dalam 1 perangkat.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SCREEN 1: TEAM & ROLE SETUP               -->
+        <!-- ========================================== -->
+        <section id="screen-team-setup" class="w-full max-w-4xl py-6 hidden animate-fadeIn">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-2xl space-y-8">
+                <!-- Step Header -->
+                <div class="border-b border-slate-800 pb-4 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold font-heading text-white flex items-center gap-2">
+                            <span class="text-brand-500">01.</span> Registrasi Kelompok & Peran Tim
+                        </h2>
+                        <p class="text-xs md:text-sm text-slate-400">Masukkan nama kelompok, daftar anggota, dan bagikan 5 peran proyek.</p>
+                    </div>
+                    <div class="text-right font-mono text-xs text-brand-500 font-semibold bg-brand-500/10 px-3 py-1 rounded-full border border-brand-500/20">
+                        FASE PERSIAPAN
+                    </div>
+                </div>
+
+                <!-- Team Form -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+                                NAMA KELOMPOK <span class="text-brand-500">*</span>
+                            </label>
+                            <input type="text" id="inputTeamName" placeholder="Contoh: Newton Engineers" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 font-medium transition-all" value="Newton Engineers">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+                                DAFTAR NAMA ANGGOTA (4-5 ORANG) <span class="text-brand-500">*</span>
+                            </label>
+                            <div class="space-y-2" id="memberInputsContainer">
+                                <input type="text" class="member-input w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500" placeholder="Anggota 1" value="Ahmad Faiz">
+                                <input type="text" class="member-input w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500" placeholder="Anggota 2" value="Bina Saraswati">
+                                <input type="text" class="member-input w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500" placeholder="Anggota 3" value="Chandra Pratama">
+                                <input type="text" class="member-input w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500" placeholder="Anggota 4" value="Dian Lestari">
+                                <input type="text" class="member-input w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500" placeholder="Anggota 5 (Opsional)" value="Eko Prasetyo">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Role Definitions & Assignments -->
+                    <div class="space-y-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                        <h3 class="text-sm font-semibold text-slate-200 uppercase tracking-wider flex items-center justify-between">
+                            <span>PEMBAGIAN PERAN KELOMPOK</span>
+                            <span class="text-xs text-amber-400 font-normal">Pilih 1 Peran per Orang</span>
+                        </h3>
+                        <p class="text-xs text-slate-400">Jika anggota 4 orang, 1 orang dapat merangkap 2 peran.</p>
+
+                        <div class="space-y-2 text-xs" id="rolesAssignmentList">
+                            <!-- Role cards generated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end pt-4 border-t border-slate-800">
+                    <button onclick="confirmTeamSetup()" class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-600 text-white font-bold text-base shadow-lg shadow-brand-600/30 transition-all flex items-center gap-2">
+                        MASUK DOK KONSTRUKSI <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SCREEN 2: TEAM DASHBOARD & MISSIONS HUB   -->
+        <!-- ========================================== -->
+        <section id="screen-dashboard" class="w-full max-w-5xl py-4 hidden animate-fadeIn space-y-6">
             
-            <!-- Real-time Physics HUD Overlay -->
-            <div id="hudOverlay" class="absolute top-2 left-2 bg-slate-900/80 backdrop-blur border border-slate-700 p-2 rounded text-xs space-y-1 text-slate-200">
-                <div><strong>Segmen:</strong> <span id="hudSegment" class="text-sky-400">1 (Aspal Datar)</span></div>
-                <div><strong>Kecepatan (v):</strong> <span id="hudVel">0.00</span> m/s</div>
-                <div><strong>Percepatan (a):</strong> <span id="hudAcc">0.00</span> m/s²</div>
-                <div><strong>Resultan Gaya (ΣF):</strong> <span id="hudFnet">0.00</span> N</div>
-            </div>
-        </div>
-
-        <!-- Dashboard Kontrol Diskusi Kelompok -->
-        <div class="bg-slate-800 border border-slate-700 rounded-lg p-3 space-y-3">
-            <h2 class="text-sm font-semibold text-slate-300 border-b border-slate-700 pb-1">
-                Panel Konfigurasi Tim (1 Device Mode)
-            </h2>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                <!-- Massa Kargo -->
-                <div>
-                    <label class="block text-slate-400 mb-1">Massa Total (<span class="italic">m</span>):</label>
-                    <div class="flex items-center gap-1">
-                        <input type="number" id="inputMass" value="10" min="1" max="50" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sky-400 font-mono font-bold">
-                        <span class="text-slate-400">kg</span>
+            <!-- TEAM STATUS CARD HEADER -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl relative overflow-hidden">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 text-center">
+                    <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+                        <span class="text-xs text-slate-400 block uppercase font-mono">Team Name</span>
+                        <span id="dashTeamName" class="font-bold text-white text-sm md:text-base truncate block">Newton Engineers</span>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+                        <span class="text-xs text-slate-400 block uppercase font-mono">Anggota</span>
+                        <span id="dashMemberCount" class="font-bold text-amber-400 text-sm md:text-base block">5 Orang</span>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+                        <span class="text-xs text-slate-400 block uppercase font-mono">Misi Aktif</span>
+                        <span id="dashMissionBadge" class="font-bold text-cyan-400 text-sm md:text-base block">1 / 5</span>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+                        <span class="text-xs text-slate-400 block uppercase font-mono">Anggaran</span>
+                        <span id="dashBudget" class="font-bold text-emerald-400 text-sm md:text-base block">100 Poin</span>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+                        <span class="text-xs text-slate-400 block uppercase font-mono">Percobaan</span>
+                        <span id="dashAttempts" class="font-bold text-purple-400 text-sm md:text-base block">0 Kali</span>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+                        <span class="text-xs text-slate-400 block uppercase font-mono">Status Struktur</span>
+                        <span id="dashBridgeStatus" class="font-bold text-slate-400 text-xs md:text-sm block truncate">Belum Ditiuji</span>
                     </div>
                 </div>
 
-                <!-- Gaya Mesin Segmen 1 -->
-                <div>
-                    <label class="block text-slate-400 mb-1">F. Mesin Segmen 1:</label>
-                    <div class="flex items-center gap-1">
-                        <input type="number" id="inputF1" value="30" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-amber-400 font-mono font-bold">
-                        <span class="text-slate-400">N</span>
+                <!-- Overall Progress Bar -->
+                <div class="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between gap-4">
+                    <div class="flex-grow">
+                        <div class="flex justify-between text-xs font-mono mb-1">
+                            <span class="text-slate-400">PROGRES REKAYASA KELOMPOK</span>
+                            <span id="dashProgressText" class="text-brand-500 font-bold">20%</span>
+                        </div>
+                        <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800">
+                            <div id="dashProgressBar" class="bg-gradient-to-r from-brand-600 via-amber-500 to-emerald-500 h-full w-[20%] transition-all duration-500"></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Gaya Mesin Segmen 2 -->
-                <div>
-                    <label class="block text-slate-400 mb-1">F. Mesin Segmen 2 (Es):</label>
-                    <div class="flex items-center gap-1">
-                        <input type="number" id="inputF2" value="20" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-amber-400 font-mono font-bold">
-                        <span class="text-slate-400">N</span>
-                    </div>
-                </div>
-
-                <!-- Gaya Mesin Segmen 3 -->
-                <div>
-                    <label class="block text-slate-400 mb-1">F. Mesin Segmen 3 (Tanjakan):</label>
-                    <div class="flex items-center gap-1">
-                        <input type="number" id="inputF3" value="70" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-amber-400 font-mono font-bold">
-                        <span class="text-slate-400">N</span>
-                    </div>
+                <!-- Roles Pills Bar -->
+                <div class="mt-4 flex flex-wrap gap-2 text-xs" id="dashRolesBadges">
+                    <!-- JS renders role pills here -->
                 </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="flex gap-2 pt-1">
-                <button id="btnRun" onclick="startSimulation()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded text-xs transition active:scale-95 shadow">
-                    RUN CARGO (Simulasi)
-                </button>
-                <button id="btnReset" onclick="resetSimulation()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2 px-4 rounded text-xs transition active:scale-95">
-                    Reset
-                </button>
+            <!-- MISSION STAGE WRAPPER CONTAINER -->
+            <div id="missionContainer" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl min-h-[480px] flex flex-col justify-between">
+                <!-- Dynamic Mission Content injected by JS -->
+            </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SCREEN 3: TEACHER MODE MODAL/VIEW          -->
+        <!-- ========================================== -->
+        <div id="modal-teacher" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chalkboard-user text-cyan-400"></i> DASHBOARD GURU / MONITORING
+                    </h2>
+                    <button onclick="toggleModal('modal-teacher', false)" class="text-slate-400 hover:text-white text-xl">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4 font-mono text-xs" id="teacherSummaryContent">
+                    <!-- Teacher Data summary injected by JS -->
+                </div>
+
+                <div class="flex justify-end gap-3 border-t border-slate-800 pt-4">
+                    <button onclick="copyTeamReportText()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-semibold flex items-center gap-2">
+                        <i class="fa-solid fa-copy"></i> SALIN REKAP KELOMPOK
+                    </button>
+                    <button onclick="toggleModal('modal-teacher', false)" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-sm font-semibold">
+                        TUTUP
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- Educational Log / Newton Principle Alert -->
-        <div id="physicsLog" class="bg-slate-950/60 border border-slate-800 rounded p-2 text-xs font-mono text-slate-300 min-h-[40px] flex items-center">
-            💡 <span class="ml-2 text-slate-400">Hitung resultan gaya di LKPD, lalu masukkan variabel ke panel kontrol di atas.</span>
+        <!-- ========================================== -->
+        <!-- SCREEN 4: RULES MODAL                      -->
+        <!-- ========================================== -->
+        <div id="modal-rules" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-book-open text-amber-400"></i> ATURAN UTAMA GAME
+                    </h2>
+                    <button onclick="toggleModal('modal-rules', false)" class="text-slate-400 hover:text-white text-xl">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-4 text-sm text-slate-300 leading-relaxed">
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                        <p class="text-amber-400 font-semibold flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i> PRINSIP REKAYASA & FISIKA:
+                        </p>
+                        <ul class="list-disc list-inside space-y-1 text-xs text-slate-300">
+                            <li>Kalian <strong>bukan</strong> sedang mencari desain yang paling bagus secara visual.</li>
+                            <li>Kalian harus membuat keputusan berdasarkan <strong>konsep Fisika Hukum Newton</strong>.</li>
+                            <li>Setiap keputusan desain harus dapat dijelaskan alasannya.</li>
+                            <li>Kelompok diperbolehkan gagal & mengulang desain. Namun setiap percobaan harus dianalisis.</li>
+                        </ul>
+                    </div>
+
+                    <div class="space-y-2 text-xs">
+                        <h4 class="font-bold text-white uppercase tracking-wider">Langkah Kerja Kelompok:</h4>
+                        <ol class="list-decimal list-inside space-y-1 text-slate-400">
+                            <li><strong>Masalah & Misi:</strong> Pahami skenario tantangan.</li>
+                            <li><strong>Diskusi Kelompok:</strong> Diskusikan dengan seluruh tim sebelum mengklik tombol keputusan.</li>
+                            <li><strong>Desain & Kalkulasi:</strong> Pilih elemen jembatan sesuai anggaran.</li>
+                            <li><strong>Simulasi & Analisis:</strong> Amati distribusi gaya aksi-reaksi dan gaya berat kendaraan.</li>
+                            <li><strong>Evaluasi & Laporan:</strong> Refleksikan hasil simulasi pada laporan rekayasa tim.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="flex justify-end border-t border-slate-800 pt-4">
+                    <button onclick="toggleModal('modal-rules', false)" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm font-bold">
+                        SAYA PAHAM & SIAP
+                    </button>
+                </div>
+            </div>
         </div>
+
     </main>
 
-    <!-- JavaScript Game Logic -->
+    <!-- FOOTER DISCLAIMER -->
+    <footer class="border-t border-slate-800/80 bg-navy-950 text-slate-500 py-3 px-4 text-center text-[11px]">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div>
+                © 2026 <strong>Bridge Engineer Physics Game</strong> • Media Pembelajaran Fisika SMA Kelas XI (Hukum Newton).
+            </div>
+            <div class="text-slate-400 italic font-mono text-[10px]">
+                "Model ini merupakan simulasi pembelajaran sederhana. Perhitungan tidak menggantikan analisis struktur teknik sipil pada konstruksi nyata."
+            </div>
+        </div>
+    </footer>
+
+    <!-- GAME LOGIC SCRIPT -->
     <script>
-        const canvas = document.getElementById('simCanvas');
-        const ctx = canvas.getContext('2d');
-
-        // Adjust Canvas Resolution
-        function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        // Environment Constants
-        const g = 9.8; // Gravity (m/s2)
-
-        // Segments Definition
-        const segments = [
-            { id: 1, name: "Segmen 1: Aspal Datar", length: 300, mu: 0.2, angleDeg: 0 },
-            { id: 2, name: "Segmen 2: Es Licin Datar", length: 300, mu: 0.05, angleDeg: 0 },
-            { id: 3, name: "Segmen 3: Tanjakan Lumpur", length: 400, mu: 0.3, angleDeg: 20 }
+        /* ============================================================
+           GLOBAL GAME STATE & CONSTANTS
+           ============================================================ */
+        const ROLES_DEF = [
+            { id: 'leader', title: '👷 PROJECT LEADER', desc: 'Mengatur diskusi dan mengambil keputusan akhir kelompok.' },
+            { id: 'physics', title: '⚙️ PHYSICS ANALYST', desc: 'Menganalisis gaya, massa, berat, dan Hukum Newton.' },
+            { id: 'designer', title: '🏗️ STRUCTURAL DESIGNER', desc: 'Merancang bentuk jembatan.' },
+            { id: 'data', title: '📊 DATA ANALYST', desc: 'Mencatat hasil simulasi dan membandingkan percobaan.' },
+            { id: 'presenter', title: '🎤 PRESENTER', desc: 'Menyampaikan hasil dan alasan desain kelompok.' }
         ];
 
-        // Cargo State
-        let cargo = {
-            x: 50,
-            y: 0,
-            vx: 0,
-            ax: 0,
-            mass: 10,
-            width: 40,
-            height: 25,
-            currentSegmentIdx: 0,
-            isFinished: false,
-            isFailed: false
+        const MATERIALS = [
+            { id: 'balok', name: 'Balok Horizontal', icon: '🪵', cost: 5, strength: 10, desc: 'Meratakan beban sepanjang bentang' },
+            { id: 'tiang', name: 'Tiang Vertikal', icon: '🏛️', cost: 6, strength: 15, desc: 'Menahan kompresi ke pondasi' },
+            { id: 'diagonal', name: 'Batang Diagonal', icon: '📐', cost: 4, strength: 12, desc: 'Mendistribusikan gaya ke rangka' },
+            { id: 'kabel', name: 'Kabel Baja', icon: '⛓️', cost: 8, strength: 15, desc: 'Menahan tegangan tarik tinggi' },
+            { id: 'sambungan', name: 'Sambungan Nut/Bolt', icon: '🔩', cost: 2, strength: 5, desc: 'Memperkuat titik simpul' }
+        ];
+
+        let gameState = {
+            teamName: 'Newton Engineers',
+            members: [
+                { name: 'Ahmad Faiz', role: 'leader' },
+                { name: 'Bina Saraswati', role: 'physics' },
+                { name: 'Chandra Pratama', role: 'designer' },
+                { name: 'Dian Lestari', role: 'data' },
+                { name: 'Eko Prasetyo', role: 'presenter' }
+            ],
+            currentMission: 1,
+            budget: 100,
+            attempts: 0,
+            attemptsHistory: [],
+            bridgeStatus: 'Belum Diuji', // 'SAFE', 'WARNING', 'FAILED'
+            designComponents: [], // items added to build area
+            mission1Done: false,
+            mission2VehicleMass: 1000,
+            mission2Done: false,
+            mission3Done: false,
+            decisionReasoning: '',
+            distributionReasoning: '',
+            predictedMaxWeight: 30000,
+            reflectionAnswers: {
+                q1: '', q2: '', q3: '', q4: '', q5: '', q6: '', q7: '', q8: ''
+            },
+            finalScore: {
+                konsep: 40,
+                analisisGaya: 20,
+                desain: 15,
+                kegagalan: 15,
+                kolaborasi: 10
+            }
         };
 
-        // Engine Inputs
-        let fEngineInputs = [30, 20, 70];
-        let isSimulating = false;
-        let animationId = null;
+        /* ============================================================
+           INITIALIZATION & SCREEN NAV
+           ============================================================ */
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSavedState();
+            renderRoleAssignmentInputs();
+        });
 
-        // Start Simulation Trigger
-        function startSimulation() {
-            if (isSimulating) return;
+        function goToScreen(screenName) {
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            const target = document.getElementById(`screen-${screenName}`);
+            if (target) target.classList.remove('hidden');
 
-            // Read Inputs
-            cargo.mass = parseFloat(document.getElementById('inputMass').value) || 10;
-            fEngineInputs = [
-                parseFloat(document.getElementById('inputF1').value) || 0,
-                parseFloat(document.getElementById('inputF2').value) || 0,
-                parseFloat(document.getElementById('inputF3').value) || 0
-            ];
-
-            resetSimulationState();
-            isSimulating = true;
-            document.getElementById('statusBadge').innerText = "Simulasi Berjalan";
-            document.getElementById('statusBadge').className = "px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-semibold";
-            
-            lastTime = performance.now();
-            animationId = requestAnimationFrame(gameLoop);
-        }
-
-        function resetSimulationState() {
-            cargo.x = 20;
-            cargo.vx = 0;
-            cargo.ax = 0;
-            cargo.currentSegmentIdx = 0;
-            cargo.isFinished = false;
-            cargo.isFailed = false;
-        }
-
-        function resetSimulation() {
-            cancelAnimationFrame(animationId);
-            isSimulating = false;
-            resetSimulationState();
-            document.getElementById('statusBadge').innerText = "Fase Perancangan";
-            document.getElementById('statusBadge').className = "px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full text-xs font-semibold";
-            document.getElementById('physicsLog').innerHTML = "💡 <span>Kargo direset. Silakan sesuaikan kembali kalkulasi tim Anda.</span>";
-            draw();
-            updateHUD(0, 0, 0, segments[0].name);
-        }
-
-        // Physics Calculation Engine
-        let lastTime = 0;
-        function updatePhysics(dt) {
-            if (cargo.isFinished || cargo.isFailed) return;
-
-            // Determine Current Segment
-            let totalLength = 0;
-            let currentSeg = segments[0];
-            let segIdx = 0;
-
-            for (let i = 0; i < segments.length; i++) {
-                if (cargo.x >= totalLength && cargo.x < totalLength + segments[i].length) {
-                    currentSeg = segments[i];
-                    segIdx = i;
-                    break;
-                }
-                totalLength += segments[i].length;
+            if (screenName === 'dashboard') {
+                document.getElementById('headerTeamInfo').classList.remove('hidden');
+                updateDashboardHeader();
+                renderMissionStage();
+            } else {
+                document.getElementById('headerTeamInfo').classList.add('hidden');
             }
+        }
 
-            cargo.currentSegmentIdx = segIdx;
+        function toggleModal(modalId, show) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                if (show) modal.classList.remove('hidden');
+                else modal.classList.add('hidden');
+            }
+        }
 
-            // Finish Line Check
-            if (cargo.x >= totalLength) {
-                cargo.isFinished = true;
-                cargo.vx = 0;
-                cargo.ax = 0;
-                document.getElementById('physicsLog').innerHTML = "🎉 <strong class='text-emerald-400'>SUKSES!</strong> Kargo berhasil sampai ke tujuan dengan aman.";
+        /* ============================================================
+           TEAM SETUP LOGIC
+           ============================================================ */
+        function renderRoleAssignmentInputs() {
+            const container = document.getElementById('rolesAssignmentList');
+            if (!container) return;
+
+            container.innerHTML = ROLES_DEF.map((r, idx) => `
+                <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <div class="font-bold text-amber-400 text-xs">${r.title}</div>
+                        <div class="text-[11px] text-slate-400">${r.desc}</div>
+                    </div>
+                    <select id="role_select_${r.id}" class="role-selector bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded px-2 py-1 focus:border-brand-500">
+                        <!-- Options generated dynamically -->
+                    </select>
+                </div>
+            `).join('');
+
+            updateRoleSelectorsOptions();
+        }
+
+        function updateRoleSelectorsOptions() {
+            const inputs = document.querySelectorAll('.member-input');
+            const memberNames = Array.from(inputs).map(inp => inp.value.trim()).filter(v => v !== '');
+
+            document.querySelectorAll('.role-selector').forEach((sel, selIdx) => {
+                const currentVal = sel.value;
+                sel.innerHTML = memberNames.map((name, mIdx) => `
+                    <option value="${name}" ${selIdx === mIdx || (selIdx >= memberNames.length && mIdx === 0) ? 'selected' : ''}>${name}</option>
+                `).join('');
+            });
+        }
+
+        // Attach listeners to member inputs to keep role selects in sync
+        document.addEventListener('input', (e) => {
+            if (e.target.classList.contains('member-input')) {
+                updateRoleSelectorsOptions();
+            }
+        });
+
+        function confirmTeamSetup() {
+            const teamNameInp = document.getElementById('inputTeamName').value.trim();
+            if (!teamNameInp) {
+                alert('Silakan masukkan nama kelompok!');
                 return;
             }
 
-            // Physics Variables Calculation
-            const m = cargo.mass;
-            const thetaRad = (currentSeg.angleDeg * Math.PI) / 180;
-            const F_engine = fEngineInputs[segIdx];
-
-            // Weight Components
-            const W = m * g;
-            const W_parallel = W * Math.sin(thetaRad); // W sin θ
-            const W_perpendicular = W * Math.cos(thetaRad); // W cos θ
-
-            // Normal Force
-            const N = W_perpendicular;
-
-            // Friction Force (f_k = mu * N)
-            const f_k = currentSeg.mu * N;
-
-            // Resultant Force (ΣF)
-            // ΣF = F_engine - f_k - W_parallel
-            let F_net = F_engine - f_k - W_parallel;
-
-            // Special Case: Newton's 1st Law & Friction direction adjustment
-            if (F_engine === 0 && cargo.vx > 0 && currentSeg.mu === 0) {
-                // Smooth glide on frictionless surface
-                F_net = 0;
-            }
-
-            // Newton's 2nd Law: a = ΣF / m
-            cargo.ax = F_net / m;
-
-            // Integration (Euler Step)
-            cargo.vx += cargo.ax * dt;
-
-            // Stop condition (If truck stalls/stops due to insufficient force)
-            if (cargo.vx <= 0) {
-                cargo.vx = 0;
-                if (F_net <= 0) {
-                    cargo.isFailed = true;
-                    document.getElementById('physicsLog').innerHTML = `⚠️ <strong class='text-rose-400'>MOGOK!</strong> Gaya dorong (${F_engine}N) kalah oleh gesekan & gaya berat. ΣF = ${F_net.toFixed(1)}N`;
-                }
-            }
-
-            cargo.x += cargo.vx * dt * 10; // Scaled for canvas display
-
-            // Educational Newton Dynamic Messages
-            if (currentSeg.mu === 0.05 && F_engine === 0) {
-                document.getElementById('physicsLog').innerHTML = "⚖️ <strong>Hukum 1 Newton:</strong> Resultan gaya mendekati nol. Kargo meluncur dengan kecepatan mendekati konstan.";
-            } else if (cargo.ax > 0) {
-                document.getElementById('physicsLog').innerHTML = `🚀 <strong>Hukum 2 Newton:</strong> ΣF = ${F_net.toFixed(1)}N memicu percepatan a = ${cargo.ax.toFixed(2)} m/s²`;
-            }
-
-            updateHUD(cargo.vx, cargo.ax, F_net, currentSeg.name);
-        }
-
-        function updateHUD(v, a, Fnet, segName) {
-            document.getElementById('hudVel').innerText = v.toFixed(2);
-            document.getElementById('hudAcc').innerText = a.toFixed(2);
-            document.getElementById('hudFnet').innerText = Fnet.toFixed(2);
-            document.getElementById('hudSegment').innerText = segName;
-        }
-
-        // Canvas Rendering Engine
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const groundY = canvas.height * 0.75;
-
-            // Render Segments
-            let startX = 0;
-            segments.forEach((seg, idx) => {
-                const segWidth = seg.length;
-
-                // Color coding per segment type
-                if (idx === 0) ctx.fillStyle = '#475569'; // Aspal
-                else if (idx === 1) ctx.fillStyle = '#bae6fd'; // Es
-                else ctx.fillStyle = '#78350f'; // Lumpur
-
-                ctx.fillRect(startX, groundY, segWidth, 30);
-
-                // Segment Divider Lines
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(startX, groundY - 10);
-                ctx.lineTo(startX, groundY + 30);
-                ctx.stroke();
-
-                // Segment Label
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '10px sans-serif';
-                ctx.fillText(seg.name, startX + 10, groundY + 20);
-
-                startX += segWidth;
+            const memberInps = document.querySelectorAll('.member-input');
+            const membersList = [];
+            memberInps.forEach(inp => {
+                const val = inp.value.trim();
+                if (val) membersList.push(val);
             });
 
-            // Render Cargo Truck
-            const truckX = cargo.x;
-            const truckY = groundY - cargo.height;
+            if (membersList.length < 4) {
+                alert('Diperlukan minimal 4 nama anggota kelompok.');
+                return;
+            }
 
-            // Truck Body
-            ctx.fillStyle = cargo.isFailed ? '#ef4444' : '#0284c7';
-            ctx.fillRect(truckX, truckY, cargo.width, cargo.height);
+            gameState.teamName = teamNameInp;
+            gameState.members = [];
 
-            // Wheels
-            ctx.fillStyle = '#0f172a';
-            ctx.beginPath();
-            ctx.arc(truckX + 8, groundY - 4, 5, 0, Math.PI * 2);
-            ctx.arc(truckX + cargo.width - 8, groundY - 4, 5, 0, Math.PI * 2);
-            ctx.fill();
+            ROLES_DEF.forEach(r => {
+                const sel = document.getElementById(`role_select_${r.id}`);
+                const assignedName = sel ? sel.value : membersList[0];
+                gameState.members.push({
+                    name: assignedName,
+                    role: r.id,
+                    roleTitle: r.title
+                });
+            });
 
-            // Free-Body Diagram Vectors Overlay (Only during simulation)
-            if (isSimulating && !cargo.isFinished) {
-                const currentSeg = segments[cargo.currentSegmentIdx];
-                const F_engine = fEngineInputs[cargo.currentSegmentIdx];
+            saveState();
+            goToScreen('dashboard');
+        }
 
-                // F_engine Vector (Green Arrow Right)
-                drawArrow(truckX + cargo.width / 2, truckY + 10, F_engine * 0.8, 0, '#10b981');
+        function updateDashboardHeader() {
+            document.getElementById('dashTeamName').innerText = gameState.teamName;
+            document.getElementById('headerTeamName').innerText = gameState.teamName;
+            
+            // Count unique members
+            const uniqueNames = new Set(gameState.members.map(m => m.name));
+            document.getElementById('dashMemberCount').innerText = `${uniqueNames.size} Orang`;
+            document.getElementById('dashMissionBadge').innerText = `${gameState.currentMission} / 5`;
+            document.getElementById('dashBudget').innerText = `${gameState.budget} Poin`;
+            document.getElementById('dashAttempts').innerText = `${gameState.attempts} Kali`;
+            document.getElementById('dashBridgeStatus').innerText = gameState.bridgeStatus;
 
-                // Friction Vector (Red Arrow Left)
-                const f_k = currentSeg.mu * cargo.mass * g;
-                drawArrow(truckX + cargo.width / 2, truckY + cargo.height, -f_k * 0.8, 0, '#f43f5e');
+            const progressPct = Math.min(100, Math.round((gameState.currentMission / 5) * 100));
+            document.getElementById('dashProgressText').innerText = `${progressPct}%`;
+            document.getElementById('dashProgressBar').style.width = `${progressPct}%`;
+
+            // Render Role Badges
+            const badgesContainer = document.getElementById('dashRolesBadges');
+            badgesContainer.innerHTML = gameState.members.map(m => `
+                <span class="bg-slate-800 border border-slate-700 text-slate-300 px-2.5 py-1 rounded-md text-[11px] flex items-center gap-1.5">
+                    <strong class="text-amber-400">${m.name}:</strong> ${m.roleTitle}
+                </span>
+            `).join('');
+        }
+
+        /* ============================================================
+           MISSION STAGE ROUTER
+           ============================================================ */
+        function renderMissionStage() {
+            const container = document.getElementById('missionContainer');
+            if (!container) return;
+
+            switch (gameState.currentMission) {
+                case 1:
+                    renderMission1(container);
+                    break;
+                case 2:
+                    renderMission2(container);
+                    break;
+                case 3:
+                    renderMission3(container);
+                    break;
+                case 4:
+                    renderMission4(container);
+                    break;
+                case 5:
+                    renderMission5(container);
+                    break;
+                case 6:
+                    renderReflectionAndReport(container);
+                    break;
+                default:
+                    renderMission1(container);
             }
         }
 
-        // Arrow Drawing Utility for Force Vectors
-        function drawArrow(fromx, fromy, lengthX, lengthY, color) {
-            if (Math.abs(lengthX) < 2) return; // Don't draw tiny arrows
+        /* ============================================================
+           MISSION 1: THE BALANCED BRIDGE (HUKUM I NEWTON)
+           ============================================================ */
+        function renderMission1(container) {
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Title Header -->
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div>
+                            <span class="text-xs font-mono text-brand-500 font-bold uppercase tracking-wider">MISI 1 / 5 • HUKUM I NEWTON</span>
+                            <h2 class="text-2xl font-bold text-white font-heading">THE BALANCED BRIDGE</h2>
+                        </div>
+                        <div class="text-xs bg-slate-800 px-3 py-1 rounded-full text-slate-300 border border-slate-700">
+                            Tujuan: Kondisi Kesetimbangan (\u2211F = 0)
+                        </div>
+                    </div>
 
-            const tox = fromx + lengthX;
-            const toy = fromy + lengthY;
-            const headlen = 6;
+                    <!-- Model Diagram -->
+                    <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 flex flex-col items-center justify-center relative">
+                        <p class="text-xs text-slate-400 mb-2 font-mono">MODEL SKEMATIK JEMBATAN DIAM (SETIMBANG)</p>
+                        
+                        <svg viewBox="0 0 500 120" class="w-full max-w-lg h-auto">
+                            <!-- Bridge Beam -->
+                            <rect x="50" y="60" width="400" height="12" fill="#475569" rx="2" />
+                            
+                            <!-- Pier Supports -->
+                            <polygon points="70,72 50,110 90,110" fill="#3b82f6" opacity="0.8" />
+                            <polygon points="430,72 410,110 450,110" fill="#3b82f6" opacity="0.8" />
+                            <text x="63" y="105" fill="#fff" font-size="10" font-weight="bold">▲ A</text>
+                            <text x="423" y="105" fill="#fff" font-size="10" font-weight="bold">▲ B</text>
 
-            ctx.strokeStyle = color;
-            ctx.fillStyle = color;
-            ctx.lineWidth = 2;
+                            <!-- Downward Weight Force Arrow -->
+                            <line x1="250" y1="10" x2="250" y2="58" stroke="#ef4444" stroke-width="3.5" marker-end="url(#arrow)" />
+                            <text x="260" y="35" fill="#ef4444" font-size="13" font-weight="bold">↓ W (Gaya Berat)</text>
 
-            ctx.beginPath();
-            ctx.moveTo(fromx, fromy);
-            ctx.lineTo(tox, toy);
-            ctx.stroke();
+                            <!-- Upward Reaction Force Arrows -->
+                            <line x1="70" y1="110" x2="70" y2="75" stroke="#22c55e" stroke-width="3" />
+                            <text x="20" y="90" fill="#22c55e" font-size="12" font-weight="bold">↑ R_A</text>
 
-            const angle = Math.atan2(lengthY, lengthX);
-            ctx.beginPath();
-            ctx.moveTo(tox, toy);
-            ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
-            ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
-            ctx.fill();
+                            <line x1="430" y1="110" x2="430" y2="75" stroke="#22c55e" stroke-width="3" />
+                            <text x="455" y="90" fill="#22c55e" font-size="12" font-weight="bold">↑ R_B</text>
+                        </svg>
+                    </div>
+
+                    <!-- Discussion Prompt -->
+                    <div class="bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl space-y-3">
+                        <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                            <span>🗣️ TEAM TALK</span>
+                            <span class="text-xs text-amber-300 font-normal">Diskusikan bersama seluruh anggota sebelum menjawab:</span>
+                        </div>
+                        <p class="text-sm text-slate-200 italic font-medium">
+                            "Mengapa jembatan tetap diam dan kokoh ketika menerima beban gaya berat (W) di atasnya?"
+                        </p>
+                        
+                        <div id="m1DiscussCheckContainer" class="pt-1">
+                            <button onclick="confirmM1Discussion()" id="btnM1Discuss" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-lg transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-comments"></i> KAMI SUDAH BERDISKUSI
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Answer Options (Hidden until discussion confirmed) -->
+                    <div id="m1QuestionBox" class="hidden space-y-4 animate-fadeIn">
+                        <h4 class="text-sm font-bold text-white uppercase tracking-wider">Pilih Kunci Jawaban Kelompok:</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <button onclick="checkM1Answer('A')" class="p-3.5 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-xl text-left text-xs md:text-sm text-slate-200 transition-all hover:border-brand-500">
+                                <strong class="text-brand-500 block mb-0.5">OPSI A</strong>
+                                Resultan seluruh gaya yang bekerja sama dengan nol (&Sigma;F = 0).
+                            </button>
+                            <button onclick="checkM1Answer('B')" class="p-3.5 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-xl text-left text-xs md:text-sm text-slate-200 transition-all hover:border-brand-500">
+                                <strong class="text-brand-500 block mb-0.5">OPSI B</strong>
+                                Tidak ada gaya sama sekali yang bekerja pada jembatan.
+                            </button>
+                            <button onclick="checkM1Answer('C')" class="p-3.5 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-xl text-left text-xs md:text-sm text-slate-200 transition-all hover:border-brand-500">
+                                <strong class="text-brand-500 block mb-0.5">OPSI C</strong>
+                                Gaya berat kendaraan jauh lebih besar daripada gaya tumpuan.
+                            </button>
+                            <button onclick="checkM1Answer('D')" class="p-3.5 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-xl text-left text-xs md:text-sm text-slate-200 transition-all hover:border-brand-500">
+                                <strong class="text-brand-500 block mb-0.5">OPSI D</strong>
+                                Jembatan tidak memiliki massa sehingga gaya luar hilang.
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Feedback Box -->
+                    <div id="m1Feedback" class="hidden p-4 rounded-xl text-sm space-y-2"></div>
+                </div>
+
+                <!-- Footer Nav Button -->
+                <div class="flex justify-end pt-4 border-t border-slate-800 mt-4">
+                    <button id="btnNextM1" onclick="nextMission(2)" disabled class="px-6 py-2.5 rounded-xl bg-slate-800 text-slate-500 font-bold text-sm cursor-not-allowed transition-all flex items-center gap-2">
+                        MISI SELANJUTNYA <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            `;
         }
 
-        // Game Loop
-        function gameLoop(time) {
-            const dt = (time - lastTime) / 1000;
-            lastTime = time;
+        function confirmM1Discussion() {
+            document.getElementById('m1DiscussCheckContainer').innerHTML = `
+                <div class="text-xs text-emerald-400 font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check"></i> Tim telah mengonfirmasi hasil diskusi! Silakan pilih jawaban.
+                </div>
+            `;
+            document.getElementById('m1QuestionBox').classList.remove('hidden');
+        }
 
-            if (dt < 0.1) { // Prevent large delta jumps
-                updatePhysics(dt);
-            }
+        function checkM1Answer(opt) {
+            const fb = document.getElementById('m1Feedback');
+            fb.classList.remove('hidden');
 
-            draw();
-
-            if (isSimulating && !cargo.isFinished && !cargo.isFailed) {
-                animationId = requestAnimationFrame(gameLoop);
+            if (opt === 'A') {
+                fb.className = "p-4 rounded-xl text-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 space-y-2 animate-fadeIn";
+                fb.innerHTML = `
+                    <div class="font-bold flex items-center gap-2 text-base">
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i> BENAR! ANALISIS FISIKA TEPAT
+                    </div>
+                    <p class="text-xs text-slate-200 leading-relaxed">
+                        Sesuai <strong>Hukum I Newton (Inersia/Kelembaman)</strong>, benda akan tetap diam jika jumlah vektor gaya luar yang bekerja padanya bernilai NOL.
+                    </p>
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-center text-amber-400 font-bold text-lg">
+                        \u2211 F = 0 &nbsp;&nbsp;&rArr;&nbsp;&nbsp; R_A + R_B - W = 0
+                    </div>
+                `;
+                gameState.mission1Done = true;
+                const btnNext = document.getElementById('btnNextM1');
+                btnNext.disabled = false;
+                btnNext.className = "px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm shadow-lg shadow-brand-600/30 transition-all flex items-center gap-2 cursor-pointer";
+            } else {
+                fb.className = "p-4 rounded-xl text-sm bg-rose-500/10 border border-rose-500/30 text-rose-300 space-y-1 animate-fadeIn";
+                fb.innerHTML = `
+                    <div class="font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-400"></i> KURANG TEPAT
+                    </div>
+                    <p class="text-xs text-slate-300">
+                        Coba evaluasi kembali: Meskipun gaya berat bekerja ke bawah, penopang jembatan memberikan gaya tumpuan ke atas yang besarnya seimbang!
+                    </p>
+                `;
             }
         }
 
-        // Initial Canvas Render
-        draw();
+        /* ============================================================
+           MISSION 2: HEAVY TRAFFIC (HUKUM II NEWTON & BEBAN BERAT)
+           ============================================================ */
+        function renderMission2(container) {
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div>
+                            <span class="text-xs font-mono text-brand-500 font-bold uppercase tracking-wider">MISI 2 / 5 • HUKUM II NEWTON</span>
+                            <h2 class="text-2xl font-bold text-white font-heading">HEAVY TRAFFIC</h2>
+                        </div>
+                        <div class="text-xs bg-slate-800 px-3 py-1 rounded-full text-slate-300 border border-slate-700">
+                            Konsep: Hubungan Massa (m) & Gaya Berat (W = mg)
+                        </div>
+                    </div>
+
+                    <!-- Vehicle Selection Cards -->
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-300 mb-2">Pilih Jenis Kendaraan Penguji:</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <button onclick="selectM2Vehicle(500)" id="vBtn-500" class="vehicle-btn p-3 bg-slate-950 border border-slate-700 hover:border-brand-500 rounded-xl text-center space-y-1 transition-all">
+                                <div class="text-2xl">🚗</div>
+                                <div class="font-bold text-white text-xs">Mobil Sedan</div>
+                                <div class="text-xs font-mono text-amber-400">500 kg</div>
+                            </button>
+                            <button onclick="selectM2Vehicle(1000)" id="vBtn-1000" class="vehicle-btn p-3 bg-slate-950 border-2 border-brand-500 rounded-xl text-center space-y-1 transition-all">
+                                <div class="text-2xl">🚌</div>
+                                <div class="font-bold text-white text-xs">Bus Kota</div>
+                                <div class="text-xs font-mono text-amber-400">1.000 kg</div>
+                            </button>
+                            <button onclick="selectM2Vehicle(2000)" id="vBtn-2000" class="vehicle-btn p-3 bg-slate-950 border border-slate-700 hover:border-brand-500 rounded-xl text-center space-y-1 transition-all">
+                                <div class="text-2xl">🚚</div>
+                                <div class="font-bold text-white text-xs">Truk Sedang</div>
+                                <div class="text-xs font-mono text-amber-400">2.000 kg</div>
+                            </button>
+                            <button onclick="selectM2Vehicle(5000)" id="vBtn-5000" class="vehicle-btn p-3 bg-slate-950 border border-slate-700 hover:border-brand-500 rounded-xl text-center space-y-1 transition-all">
+                                <div class="text-2xl">🚛</div>
+                                <div class="font-bold text-white text-xs">Truk Tronton</div>
+                                <div class="text-xs font-mono text-amber-400">5.000 kg</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Weight Calculator & Force Vector Display -->
+                    <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                        <div class="space-y-1 text-center md:text-left border-b md:border-b-0 md:border-r border-slate-800 pb-3 md:pb-0 md:pr-4">
+                            <span class="text-xs font-mono text-slate-400 uppercase">MASSA KENDARAAN (m)</span>
+                            <div id="displayMass" class="text-2xl font-black text-amber-400 font-mono">1.000 kg</div>
+                            <span class="text-[11px] text-slate-500">Percepatan gravitasi (g) = 10 m/s²</span>
+                        </div>
+
+                        <div class="space-y-1 text-center border-b md:border-b-0 md:border-r border-slate-800 pb-3 md:pb-0 md:px-4">
+                            <span class="text-xs font-mono text-slate-400 uppercase">GAYA BERAT TEKAN (W = m · g)</span>
+                            <div id="displayWeight" class="text-3xl font-black text-rose-500 font-mono">10.000 N</div>
+                            <span class="text-[11px] text-emerald-400 font-mono">10 kN Gaya Kebawah</span>
+                        </div>
+
+                        <!-- Vector arrow illustration -->
+                        <div class="flex flex-col items-center justify-center p-2">
+                            <div class="text-xs text-slate-400 font-mono mb-1">VISUALISASI PANAH GAYA (W)</div>
+                            <svg viewBox="0 0 100 80" class="w-20 h-16">
+                                <rect x="25" y="5" width="50" height="20" fill="#f59e0b" rx="3"/>
+                                <line id="vectorArrowLine" x1="50" y1="25" x2="50" y2="65" stroke="#ef4444" stroke-width="4" />
+                                <polygon id="vectorArrowHead" points="43,62 50,75 57,62" fill="#ef4444" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Team Discussion Quiz -->
+                    <div class="bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl space-y-3">
+                        <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                            <span>🗣️ TEAM TALK</span>
+                            <span class="text-xs text-amber-300 font-normal">Diskusikan bersama kelompok:</span>
+                        </div>
+                        <p class="text-sm text-slate-200 italic">
+                            "Jika massa kendaraan dinaikkan menjadi dua kali lipat (misal dari 1.000 kg menjadi 2.000 kg), apa yang terjadi pada besar gaya berat (W) yang diterima struktur jembatan?"
+                        </p>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2">
+                            <button onclick="checkM2Answer(1)" class="p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-lg text-xs font-semibold text-slate-200">
+                                Gaya berat tetap sama
+                            </button>
+                            <button onclick="checkM2Answer(2)" class="p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-lg text-xs font-semibold text-slate-200">
+                                Gaya berat menjadi 2 kali lipat
+                            </button>
+                            <button onclick="checkM2Answer(3)" class="p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-lg text-xs font-semibold text-slate-200">
+                                Gaya berat berkurang setengahnya
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="m2Feedback" class="hidden p-4 rounded-xl text-sm space-y-2"></div>
+                </div>
+
+                <div class="flex justify-end pt-4 border-t border-slate-800 mt-4">
+                    <button id="btnNextM2" onclick="nextMission(3)" disabled class="px-6 py-2.5 rounded-xl bg-slate-800 text-slate-500 font-bold text-sm cursor-not-allowed transition-all flex items-center gap-2">
+                        MISI SELANJUTNYA <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        function selectM2Vehicle(mass) {
+            gameState.mission2VehicleMass = mass;
+            document.querySelectorAll('.vehicle-btn').forEach(btn => {
+                btn.classList.remove('border-2', 'border-brand-500');
+                btn.classList.add('border-slate-700');
+            });
+
+            const activeBtn = document.getElementById(`vBtn-${mass}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-slate-700');
+                activeBtn.classList.add('border-2', 'border-brand-500');
+            }
+
+            const weight = mass * 10;
+            document.getElementById('displayMass').innerText = `${mass.toLocaleString('id-ID')} kg`;
+            document.getElementById('displayWeight').innerText = `${weight.toLocaleString('id-ID')} N`;
+
+            // Adjust arrow vector height visually
+            const scale = Math.max(30, Math.min(70, (mass / 5000) * 70));
+            const arrowLine = document.getElementById('vectorArrowLine');
+            const arrowHead = document.getElementById('vectorArrowHead');
+            if (arrowLine && arrowHead) {
+                arrowLine.setAttribute('x2', '50');
+                arrowLine.setAttribute('y2', 25 + scale);
+                arrowHead.setAttribute('points', `43,${20 + scale} 50,${30 + scale} 57,${20 + scale}`);
+            }
+        }
+
+        function checkM2Answer(ans) {
+            const fb = document.getElementById('m2Feedback');
+            fb.classList.remove('hidden');
+
+            if (ans === 2) {
+                fb.className = "p-4 rounded-xl text-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 space-y-2 animate-fadeIn";
+                fb.innerHTML = `
+                    <div class="font-bold flex items-center gap-2 text-base">
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i> JAWABAN TEPAT! (HUBUNGAN LINIER BERBANDING LURUS)
+                    </div>
+                    <p class="text-xs text-slate-200 leading-relaxed">
+                        Sesuai persamaan <strong>W = m · g</strong>, gaya berat berbanding lurus dengan massa benda. Jika massa (m) naik 2x lipat, maka gaya berat tekan (W) yang diterima penopang jembatan juga meningkat tepat 2x lipat!
+                    </p>
+                `;
+                gameState.mission2Done = true;
+                const btnNext = document.getElementById('btnNextM2');
+                btnNext.disabled = false;
+                btnNext.className = "px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm shadow-lg shadow-brand-600/30 transition-all flex items-center gap-2 cursor-pointer";
+            } else {
+                fb.className = "p-4 rounded-xl text-sm bg-rose-500/10 border border-rose-500/30 text-rose-300 space-y-1 animate-fadeIn";
+                fb.innerHTML = `
+                    <div class="font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-400"></i> KURANG TEPAT
+                    </div>
+                    <p class="text-xs text-slate-300">
+                        Perhatikan rumus W = m · g. Karena percepatan gravitasi (g) bernilai konstan (10 m/s²), perubahan massa berbanding lurus langsung dengan gaya berat!
+                    </p>
+                `;
+            }
+        }
+
+        /* ============================================================
+           MISSION 3: ACTION & REACTION (HUKUM III NEWTON)
+           ============================================================ */
+        function renderMission3(container) {
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div>
+                            <span class="text-xs font-mono text-brand-500 font-bold uppercase tracking-wider">MISI 3 / 5 • HUKUM III NEWTON</span>
+                            <h2 class="text-2xl font-bold text-white font-heading">ACTION & REACTION</h2>
+                        </div>
+                        <div class="text-xs bg-slate-800 px-3 py-1 rounded-full text-slate-300 border border-slate-700">
+                            Konsep: Pasangan Gaya Aksi - Reaksi (F_aksi = -F_reaksi)
+                        </div>
+                    </div>
+
+                    <!-- Interactive Animated Graphic -->
+                    <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 flex flex-col items-center justify-center">
+                        <div class="text-xs font-mono text-slate-400 mb-3">ANIMASI INTERAKSI GAYA KENDARAAN & JEMBATAN</div>
+                        
+                        <svg viewBox="0 0 500 140" class="w-full max-w-lg h-auto">
+                            <!-- Deck -->
+                            <rect x="40" y="70" width="420" height="14" fill="#334155" rx="3" />
+                            
+                            <!-- Vehicle -->
+                            <g class="animate-pulse">
+                                <rect x="210" y="35" width="80" height="30" fill="#f59e0b" rx="4" />
+                                <circle cx="230" cy="65" r="6" fill="#0f172a" />
+                                <circle cx="270" cy="65" r="6" fill="#0f172a" />
+                            </g>
+
+                            <!-- Force Vector Aksi (Roda menekan Jembatan ke bawah) -->
+                            <line x1="230" y1="65" x2="230" y2="105" stroke="#ef4444" stroke-width="3.5" marker-end="url(#arrow)" />
+                            <text x="130" y="95" fill="#ef4444" font-size="11" font-weight="bold">F_aksi (Roda &rarr; Jembatan)</text>
+
+                            <!-- Force Vector Reaksi (Jembatan menahan Roda ke atas) -->
+                            <line x1="270" y1="105" x2="270" y2="68" stroke="#06b6d4" stroke-width="3.5" />
+                            <text x="280" y="95" fill="#06b6d4" font-size="11" font-weight="bold">F_reaksi (Jembatan &rArr; Roda)</text>
+                        </svg>
+
+                        <div class="mt-2 text-xs text-slate-400 text-center max-w-md">
+                            Roda kendaraan menekan lantai jembatan ke bawah (<span class="text-rose-400 font-bold">F_aksi</span>). Secara bersamaan, lantai jembatan memberikan gaya dorong ke atas (<span class="text-cyan-400 font-bold">F_reaksi</span>) yang sama besar.
+                        </div>
+                    </div>
+
+                    <!-- Identification Quiz -->
+                    <div class="bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl space-y-3">
+                        <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                            <span>🗣️ TEAM TALK</span>
+                            <span class="text-xs text-amber-300 font-normal">Pilih sifat utama pasangan gaya AKSI-REAKSI berdasarkan Hukum III Newton:</span>
+                        </div>
+
+                        <div class="space-y-2 text-xs md:text-sm">
+                            <label class="flex items-center gap-3 p-3 bg-slate-950 rounded-lg border border-slate-800 hover:border-brand-500 cursor-pointer">
+                                <input type="radio" name="m3opt" value="1" onclick="checkM3Answer(1)" class="text-brand-500 focus:ring-0">
+                                <span>Besarnya sama, arahnya berlawanan, dan bekerja pada <strong>DUA BENDA YANG BERBEDA</strong>.</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-slate-950 rounded-lg border border-slate-800 hover:border-brand-500 cursor-pointer">
+                                <input type="radio" name="m3opt" value="2" onclick="checkM3Answer(2)" class="text-brand-500 focus:ring-0">
+                                <span>Besarnya berbeda, arahnya searah, dan bekerja pada benda yang sama.</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-slate-950 rounded-lg border border-slate-800 hover:border-brand-500 cursor-pointer">
+                                <input type="radio" name="m3opt" value="3" onclick="checkM3Answer(3)" class="text-brand-500 focus:ring-0">
+                                <span>Gaya aksi bekerja lebih dulu, baru gaya reaksi muncul beberapa detik kemudian.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="m3Feedback" class="hidden p-4 rounded-xl text-sm space-y-2"></div>
+                </div>
+
+                <div class="flex justify-end pt-4 border-t border-slate-800 mt-4">
+                    <button id="btnNextM3" onclick="nextMission(4)" disabled class="px-6 py-2.5 rounded-xl bg-slate-800 text-slate-500 font-bold text-sm cursor-not-allowed transition-all flex items-center gap-2">
+                        MISI SELANJUTNYA (DESAIN) <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        function checkM3Answer(val) {
+            const fb = document.getElementById('m3Feedback');
+            fb.classList.remove('hidden');
+
+            if (val === 1) {
+                fb.className = "p-4 rounded-xl text-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 space-y-2 animate-fadeIn";
+                fb.innerHTML = `
+                    <div class="font-bold flex items-center gap-2 text-base">
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i> BENAR SEKALI! SYARAT MUTLAK HUKUM III NEWTON
+                    </div>
+                    <p class="text-xs text-slate-200 leading-relaxed">
+                        Pasangan Aksi-Reaksi memiliki 3 sifat utama:
+                    </p>
+                    <ul class="list-disc list-inside text-xs text-slate-300 space-y-1 font-mono">
+                        <li>1. Sama besar (|F_aksi| = |F_reaksi|)</li>
+                        <li>2. Berlawanan arah (F_aksi = -F_reaksi)</li>
+                        <li>3. Bekerja pada DUA BENDA YANG BERBEDA (Kendaraan & Jembatan)</li>
+                    </ul>
+                `;
+                gameState.mission3Done = true;
+                const btnNext = document.getElementById('btnNextM3');
+                btnNext.disabled = false;
+                btnNext.className = "px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm shadow-lg shadow-brand-600/30 transition-all flex items-center gap-2 cursor-pointer";
+            } else {
+                fb.className = "p-4 rounded-xl text-sm bg-rose-500/10 border border-rose-500/30 text-rose-300 space-y-1 animate-fadeIn";
+                fb.innerHTML = `
+                    <div class="font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-400"></i> KURANG TEPAT
+                    </div>
+                    <p class="text-xs text-slate-300">
+                        Ingat: Gaya aksi dan reaksi muncul secara bersamaan seketika, dan harus bekerja pada dua objek yang saling berinteraksi!
+                    </p>
+                `;
+            }
+        }
+
+        /* ============================================================
+           MISSION 4: DESIGN YOUR BRIDGE (INTERACTIVE BUILDER)
+           ============================================================ */
+        function renderMission4(container) {
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-3 gap-2">
+                        <div>
+                            <span class="text-xs font-mono text-brand-500 font-bold uppercase tracking-wider">MISI 4 / 5 • INTI REKAYASA STRUKTUR</span>
+                            <h2 class="text-2xl font-bold text-white font-heading">DESIGN YOUR BRIDGE</h2>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl text-xs font-mono">
+                                ANGGRAN: <strong id="m4BudgetVal" class="text-emerald-400">${gameState.budget}</strong> / 100 POIN
+                            </div>
+                            <div class="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl text-xs font-mono">
+                                KEKUATAN ESTIMASI: <strong id="m4StrengthVal" class="text-cyan-400">0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Material Component Selector Palette -->
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-300 mb-2">Pilih Komponen Struktur untuk Ditambahkan:</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                            ${MATERIALS.map(m => `
+                                <button onclick="addComponentToDesign('${m.id}')" class="p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-brand-500 rounded-xl text-left space-y-1 transition-all">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-lg">${m.icon}</span>
+                                        <span class="text-[10px] font-mono bg-brand-500/10 text-brand-400 px-1.5 py-0.5 rounded font-bold">${m.cost} Pts</span>
+                                    </div>
+                                    <div class="font-bold text-white text-xs truncate">${m.name}</div>
+                                    <div class="text-[10px] text-slate-400 font-mono">+${m.strength} Strength</div>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Construction Canvas / Layout Display -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 relative space-y-3">
+                        <div class="flex items-center justify-between text-xs font-mono">
+                            <span class="text-slate-400">AREA KONSTRUKSI JEMBATAN (30m)</span>
+                            <button onclick="clearBridgeDesign()" class="text-rose-400 hover:text-rose-300 text-[11px] underline">
+                                <i class="fa-solid fa-trash"></i> Hapus Semua
+                            </button>
+                        </div>
+
+                        <!-- Structural Visual Canvas SVG -->
+                        <div id="bridgeCanvasWrapper" class="w-full bg-slate-900 rounded-lg p-2 border border-slate-800 relative overflow-hidden">
+                            <svg id="bridgeSVG" viewBox="0 0 600 160" class="w-full h-auto">
+                                <!-- Background Ravine -->
+                                <rect x="0" y="120" width="600" height="40" fill="#0369a1" fill-opacity="0.2" />
+                                <rect x="0" y="70" width="120" height="90" fill="#334155" />
+                                <rect x="480" y="70" width="120" height="90" fill="#334155" />
+                                
+                                <!-- Anchor Piers -->
+                                <polygon points="120,70 100,130 140,130" fill="#475569" />
+                                <polygon points="480,70 460,130 500,130" fill="#475569" />
+
+                                <!-- Dynamic Components Render Area -->
+                                <g id="svgComponentsGroup">
+                                    <!-- Base Road Deck Always Present -->
+                                    <line x1="120" y1="70" x2="480" y2="70" stroke="#f59e0b" stroke-width="6" />
+                                </g>
+
+                                <!-- Vehicle Test Marker -->
+                                <g id="svgTestVehicle" class="hidden">
+                                    <rect id="testVehRect" x="120" y="52" width="50" height="18" fill="#ef4444" rx="3" />
+                                    <circle id="testVehWheel1" cx="132" cy="70" r="4" fill="#000" />
+                                    <circle id="testVehWheel2" cx="158" cy="70" r="4" fill="#000" />
+                                </g>
+                            </svg>
+                        </div>
+
+                        <!-- Components List Tags -->
+                        <div id="componentsTags" class="flex flex-wrap gap-2 text-xs">
+                            <span class="text-slate-500 italic text-xs">Belum ada komponen tambahan. Klik tombol di atas untuk menambah.</span>
+                        </div>
+                    </div>
+
+                    <!-- Mandatory Team Decision Section before Test -->
+                    <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-4">
+                        <div class="flex items-center gap-2 text-brand-500 font-bold text-sm border-b border-slate-800 pb-2">
+                            <i class="fa-solid fa-clipboard-check"></i> DESIGN DECISION (ALASAN KELOMPOK)
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                            <div>
+                                <label class="block font-semibold text-slate-300 mb-1">1. Mengapa kelompok memilih kombinasi desain ini?</label>
+                                <textarea id="txtDecisionReason" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-500" placeholder="Jelaskan pertimbangan kelompok..."></textarea>
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-300 mb-1">2. Bagaimana desain ini membantu mendistribusikan gaya?</label>
+                                <textarea id="txtDistributionReason" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-brand-500" placeholder="Misal: Bentuk segitiga menyebarkan beban ke pondasi..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                            <div class="w-full sm:w-auto">
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Prediksi Beban Maksimum (N):</label>
+                                <input type="number" id="numPredictWeight" value="30000" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-amber-400 font-mono font-bold w-40 text-xs">
+                            </div>
+
+                            <button onclick="runBridgeSimulation()" id="btnTestBridge" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-vial"></i> TEST BRIDGE
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Simulation Result Modal Overlay / Output -->
+                    <div id="simResultBox" class="hidden p-5 rounded-xl border space-y-4 animate-fadeIn"></div>
+                </div>
+
+                <!-- Footer Nav Button -->
+                <div class="flex justify-between items-center pt-4 border-t border-slate-800 mt-4">
+                    <div id="attemptHistoryCount" class="text-xs font-mono text-slate-400">
+                        Total Percobaan: <strong class="text-white">${gameState.attempts}</strong>
+                    </div>
+                    <button id="btnNextM4" onclick="nextMission(5)" disabled class="px-6 py-2.5 rounded-xl bg-slate-800 text-slate-500 font-bold text-sm cursor-not-allowed transition-all flex items-center gap-2">
+                        MISI FINAL (SAVE THE CITY) <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            `;
+
+            renderSVGBridgeComponents();
+        }
+
+        function addComponentToDesign(matId) {
+            const item = MATERIALS.find(m => m.id === matId);
+            if (!item) return;
+
+            const totalCost = gameState.designComponents.reduce((acc, c) => acc + c.cost, 0) + item.cost;
+            if (totalCost > 100) {
+                alert('Anggaran tidak mencukupi! Maksimal anggaran adalah 100 Poin.');
+                return;
+            }
+
+            gameState.designComponents.push({ ...item, instanceId: Date.now() + Math.random() });
+            updateDesignStats();
+            renderSVGBridgeComponents();
+        }
+
+        function removeComponentFromDesign(instId) {
+            gameState.designComponents = gameState.designComponents.filter(c => c.instanceId !== instId);
+            updateDesignStats();
+            renderSVGBridgeComponents();
+        }
+
+        function clearBridgeDesign() {
+            gameState.designComponents = [];
+            updateDesignStats();
+            renderSVGBridgeComponents();
+        }
+
+        function updateDesignStats() {
+            const costUsed = gameState.designComponents.reduce((acc, c) => acc + c.cost, 0);
+            const totalStr = gameState.designComponents.reduce((acc, c) => acc + c.strength, 0);
+            gameState.budget = 100 - costUsed;
+
+            const bEl = document.getElementById('m4BudgetVal');
+            const sEl = document.getElementById('m4StrengthVal');
+            if (bEl) bEl.innerText = gameState.budget;
+            if (sEl) sEl.innerText = totalStr;
+
+            // Update Component Pills
+            const tagsBox = document.getElementById('componentsTags');
+            if (tagsBox) {
+                if (gameState.designComponents.length === 0) {
+                    tagsBox.innerHTML = `<span class="text-slate-500 italic text-xs">Belum ada komponen tambahan. Klik tombol di atas untuk menambah.</span>`;
+                } else {
+                    tagsBox.innerHTML = gameState.designComponents.map(c => `
+                        <span class="bg-slate-900 border border-slate-700 text-slate-200 px-2.5 py-1 rounded-lg flex items-center gap-2">
+                            <span>${c.icon} ${c.name}</span>
+                            <button onclick="removeComponentFromDesign(${c.instanceId})" class="text-rose-400 hover:text-rose-200 font-bold ml-1">&times;</button>
+                        </span>
+                    `).join('');
+                }
+            }
+        }
+
+        function renderSVGBridgeComponents() {
+            const group = document.getElementById('svgComponentsGroup');
+            if (!group) return;
+
+            let html = `<line x1="120" y1="70" x2="480" y2="70" stroke="#f59e0b" stroke-width="6" />`;
+
+            let hasTiang = false;
+            let hasDiagonal = false;
+            let hasKabel = false;
+            let hasBalok = false;
+
+            gameState.designComponents.forEach(c => {
+                if (c.id === 'tiang') hasTiang = true;
+                if (c.id === 'diagonal') hasDiagonal = true;
+                if (c.id === 'kabel') hasKabel = true;
+                if (c.id === 'balok') hasBalok = true;
+            });
+
+            if (hasBalok) {
+                html += `<line x1="120" y1="66" x2="480" y2="66" stroke="#94a3b8" stroke-width="4" />`;
+            }
+            if (hasTiang) {
+                html += `
+                    <line x1="210" y1="70" x2="210" y2="130" stroke="#64748b" stroke-width="4" />
+                    <line x1="300" y1="70" x2="300" y2="130" stroke="#64748b" stroke-width="4" />
+                    <line x1="390" y1="70" x2="390" y2="130" stroke="#64748b" stroke-width="4" />
+                `;
+            }
+            if (hasDiagonal) {
+                html += `
+                    <line x1="120" y1="70" x2="210" y2="30" stroke="#38bdf8" stroke-width="3" />
+                    <line x1="210" y1="30" x2="300" y2="70" stroke="#38bdf8" stroke-width="3" />
+                    <line x1="300" y1="70" x2="390" y2="30" stroke="#38bdf8" stroke-width="3" />
+                    <line x1="390" y1="30" x2="480" y2="70" stroke="#38bdf8" stroke-width="3" />
+                    <line x1="210" y1="30" x2="390" y2="30" stroke="#38bdf8" stroke-width="3" />
+                `;
+            }
+            if (hasKabel) {
+                html += `
+                    <path d="M 120 70 Q 300 120 480 70" stroke="#e2e8f0" stroke-width="2.5" fill="none" stroke-dasharray="4" />
+                    <line x1="210" y1="70" x2="210" y2="95" stroke="#e2e8f0" stroke-width="1.5" />
+                    <line x1="300" y1="70" x2="300" y2="108" stroke="#e2e8f0" stroke-width="1.5" />
+                    <line x1="390" y1="70" x2="390" y2="95" stroke="#e2e8f0" stroke-width="1.5" />
+                `;
+            }
+
+            group.innerHTML = html;
+        }
+
+        /* ============================================================
+           SIMULATION ENGINE FOR MISSION 4 & 5
+           ============================================================ */
+        function runBridgeSimulation() {
+            const dReason = document.getElementById('txtDecisionReason').value.trim();
+            const distReason = document.getElementById('txtDistributionReason').value.trim();
+
+            if (!dReason || !distReason) {
+                alert('Mohon isi terlebih dahulu alasan keputusan desain dan penjelasan distribusi gaya kelompok!');
+                return;
+            }
+
+            gameState.decisionReasoning = dReason;
+            gameState.distributionReasoning = distReason;
+            gameState.predictedMaxWeight = parseInt(document.getElementById('numPredictWeight').value) || 30000;
+            gameState.attempts++;
+
+            // Calculate total structural strength
+            const baseDeckStr = 15;
+            const componentStr = gameState.designComponents.reduce((acc, c) => acc + c.strength, 0);
+            
+            // Check structural synergy bonus (Truss = diagonal + tiang, Cable-stayed = kabel + tiang)
+            let synergyBonus = 0;
+            const ids = gameState.designComponents.map(c => c.id);
+            if (ids.includes('diagonal') && ids.includes('tiang')) synergyBonus += 25; // Triangular Truss stability
+            if (ids.includes('kabel') && ids.includes('tiang')) synergyBonus += 20;
+
+            const totalCapacity = (baseDeckStr + componentStr + synergyBonus) * 500; // Load capacity in Newtons
+            const testLoad = 35000; // Standard heavy test vehicle 3,500 kg = 35,000 N
+
+            const veh = document.getElementById('svgTestVehicle');
+            if (veh) veh.classList.remove('hidden');
+
+            const btnTest = document.getElementById('btnTestBridge');
+            btnTest.disabled = true;
+            btnTest.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> MENJALANKAN SIMULASI...`;
+
+            // Animate Vehicle Crossing
+            let posX = 120;
+            const vehRect = document.getElementById('testVehRect');
+            const vehW1 = document.getElementById('testVehWheel1');
+            const vehW2 = document.getElementById('testVehWheel2');
+
+            const animInterval = setInterval(() => {
+                posX += 10;
+                if (vehRect && vehW1 && vehW2) {
+                    vehRect.setAttribute('x', posX);
+                    vehW1.setAttribute('cx', posX + 12);
+                    vehW2.setAttribute('cx', posX + 38);
+                }
+
+                if (posX >= 430) {
+                    clearInterval(animInterval);
+                    finishSimulation(totalCapacity, testLoad);
+                }
+            }, 50);
+        }
+
+        function finishSimulation(capacity, load) {
+            const btnTest = document.getElementById('btnTestBridge');
+            if (btnTest) {
+                btnTest.disabled = false;
+                btnTest.innerHTML = `<i class="fa-solid fa-vial"></i> TEST BRIDGE AGAIN`;
+            }
+
+            const simBox = document.getElementById('simResultBox');
+            simBox.classList.remove('hidden');
+
+            const isSuccess = capacity >= load;
+            const deformation = isSuccess ? (load / capacity * 3.2).toFixed(1) : (load / (capacity || 1) * 8.5).toFixed(1);
+
+            if (isSuccess) {
+                gameState.bridgeStatus = 'SURVIVED (SAFE)';
+                simBox.className = "p-5 rounded-xl bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 space-y-3 animate-fadeIn";
+                simBox.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-emerald-500/30 pb-2">
+                        <div class="font-bold text-lg flex items-center gap-2">
+                            <span>🟢 SIMULASI BERHASIL: JEMBATAN STABIL!</span>
+                        </div>
+                        <span class="font-mono text-xs bg-emerald-500/20 px-3 py-1 rounded-full text-emerald-300 font-bold">STATUS: SAFE</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+                        <div class="bg-slate-950/80 p-2.5 rounded-lg border border-slate-800">
+                            <span class="text-slate-400 block">BEBAN UJI</span>
+                            <span class="text-white font-bold text-sm">${load.toLocaleString('id-ID')} N</span>
+                        </div>
+                        <div class="bg-slate-950/80 p-2.5 rounded-lg border border-slate-800">
+                            <span class="text-slate-400 block">KAPASITAS MUKTAMAD</span>
+                            <span class="text-emerald-400 font-bold text-sm">${capacity.toLocaleString('id-ID')} N</span>
+                        </div>
+                        <div class="bg-slate-950/80 p-2.5 rounded-lg border border-slate-800">
+                            <span class="text-slate-400 block">DEFORMASI</span>
+                            <span class="text-amber-400 font-bold text-sm">${deformation} cm</span>
+                        </div>
+                        <div class="bg-slate-950/80 p-2.5 rounded-lg border border-slate-800">
+                            <span class="text-slate-400 block">PERCOBAAN KE-</span>
+                            <span class="text-purple-400 font-bold text-sm">${gameState.attempts}</span>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-200">
+                        <strong>Analisis Fisika:</strong> Struktur berhasil membagi gaya kompresi dan tarik secara merata, memenuhi syarat kesetimbangan statis Hukum I Newton!
+                    </p>
+                `;
+
+                gameState.mission4Done = true;
+                const btnNext = document.getElementById('btnNextM4');
+                if (btnNext) {
+                    btnNext.disabled = false;
+                    btnNext.className = "px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm shadow-lg shadow-brand-600/30 transition-all flex items-center gap-2 cursor-pointer";
+                }
+            } else {
+                gameState.bridgeStatus = 'CRITICAL / FAILED';
+                simBox.className = "p-5 rounded-xl bg-rose-500/10 border border-rose-500/40 text-rose-300 space-y-4 animate-fadeIn";
+                simBox.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-rose-500/30 pb-2">
+                        <div class="font-bold text-lg flex items-center gap-2">
+                            <span>⚠️ BRIDGE FAILED (KEGAGALAN STRUKTUR)</span>
+                        </div>
+                        <span class="font-mono text-xs bg-rose-500/20 px-3 py-1 rounded-full text-rose-300 font-bold">CRITICAL COLLAPSE</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+                        <div class="bg-slate-950/80 p-2.5 rounded-lg border border-slate-800">
+                            <span class="text-slate-400 block">BEBAN UJI</span>
+                            <span class="text-white font-bold text-sm">${load.toLocaleString('id-ID')} N</span>
+                        </div>
+                        <div class="bg-slate-950/80 p-2.5 rounded-lg border border-slate-800">
+                            <span class="text-slate-400 block">KAPASITAS MAKS</span>
+                            <span class="text-rose-400 font-bold text-sm">${capacity.toLocaleString('id-ID')} N</span>
+                        </div>
+                        <div class="bg-slate-950/80 p-2.5 rounded-lg border border-slate-800">
+                            <span class="text-slate-400 block">DEFORMASI KRITIS</span>
+                            <span class="text-rose-400 font-bold text-sm">${deformation} cm</span>
+                        </div>
+                        <div class="bg-slate-950/80 p-2.5 rounded-lg border border-slate-800">
+                            <span class="text-slate-400 block">TITIK PATAH</span>
+                            <span class="text-amber-400 font-bold text-sm">Tengah Bentang</span>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-300">
+                        "Struktur tidak mampu mempertahankan kondisi stabil ketika menerima beban tersebut karena resultan gaya dalam tidak mencukupi menahan gaya berat tekan."
+                    </p>
+
+                    <!-- Failure Reason Checklist -->
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
+                        <div class="text-xs font-bold text-white">Diskusikan Penyebab Utama Kegagalan Desain Tim:</div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            <label class="flex items-center gap-2 text-slate-300">
+                                <input type="checkbox" class="rounded text-brand-500 focus:ring-0"> Beban kendaraan terlalu besar untuk struktur datar
+                            </label>
+                            <label class="flex items-center gap-2 text-slate-300">
+                                <input type="checkbox" class="rounded text-brand-500 focus:ring-0"> Kurang batang diagonal penyebar gaya
+                            </label>
+                            <label class="flex items-center gap-2 text-slate-300">
+                                <input type="checkbox" class="rounded text-brand-500 focus:ring-0"> Kurang tiang vertikal penahan kompresi
+                            </label>
+                            <label class="flex items-center gap-2 text-slate-300">
+                                <input type="checkbox" class="rounded text-brand-500 focus:ring-0"> Distribusi material kurang seimbang
+                            </label>
+                        </div>
+                    </div>
+                `;
+            }
+
+            gameState.attemptsHistory.push({
+                attempt: gameState.attempts,
+                status: isSuccess ? '🟢 Survived' : '❌ Failed',
+                capacity: capacity,
+                budgetLeft: gameState.budget
+            });
+
+            updateDashboardHeader();
+        }
+
+        /* ============================================================
+           MISSION 5: SAVE THE CITY (FINAL CHALLENGE)
+           ============================================================ */
+        function renderMission5(container) {
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div>
+                            <span class="text-xs font-mono text-brand-500 font-bold uppercase tracking-wider">MISI 5 / 5 • FINAL CHALLENGE</span>
+                            <h2 class="text-2xl font-bold text-white font-heading">SAVE THE CITY</h2>
+                        </div>
+                        <div class="text-xs bg-slate-800 px-3 py-1 rounded-full text-slate-300 border border-slate-700">
+                            Target Akhir Rekayasa Tim
+                        </div>
+                    </div>
+
+                    <!-- Story Briefing -->
+                    <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-3">
+                        <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                            <i class="fa-solid fa-city"></i> SKENARIO KOTA METROPOLIS:
+                        </div>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            "Kota membutuhkan jembatan baru melintasi sungai sepanjang 30 meter. Jembatan harus mampu menahan bus dan truk kontainer berat (minimal <strong>5.000 kg / 50.000 N</strong>), namun material dan anggaran pemerintah terbatas maksimal <strong>100 Poin</strong>."
+                        </p>
+                    </div>
+
+                    <!-- Final Evaluation Metrics Preview -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center space-y-1">
+                            <div class="text-2xl">💪</div>
+                            <div class="font-bold text-white text-sm">STRENGTH (40%)</div>
+                            <div class="text-xs text-slate-400">Daya tahan menahan beban 50.000 N</div>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center space-y-1">
+                            <div class="text-2xl">⚖️</div>
+                            <div class="font-bold text-white text-sm">STABILITY (30%)</div>
+                            <div class="text-xs text-slate-400">Keseimbangan struktur segitiga/truss</div>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center space-y-1">
+                            <div class="text-2xl">💰</div>
+                            <div class="font-bold text-white text-sm">EFFICIENCY (30%)</div>
+                            <div class="text-xs text-slate-400">Hemat anggaran material poin</div>
+                        </div>
+                    </div>
+
+                    <div class="text-center pt-4">
+                        <button onclick="nextMission(6)" class="px-10 py-4 rounded-xl bg-gradient-to-r from-brand-600 via-amber-500 to-emerald-500 text-slate-950 font-black text-lg shadow-xl hover:scale-105 transition-all">
+                            SELESAIKAN & BUAT LAPORAN KELOMPOK <i class="fa-solid fa-award"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* ============================================================
+           MISSION 6: REFLECTION & TEAM ENGINEERING REPORT
+           ============================================================ */
+        function renderReflectionAndReport(container) {
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div>
+                            <span class="text-xs font-mono text-brand-500 font-bold uppercase tracking-wider">EVALUASI PEMBELAJARAN</span>
+                            <h2 class="text-2xl font-bold text-white font-heading">ENGINEERING REPORT & REFLEKSI FISIKA</h2>
+                        </div>
+                        <div class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full font-bold">
+                            SKOR TIM: 100 / 100
+                        </div>
+                    </div>
+
+                    <!-- 8 Reflection Questions -->
+                    <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-4">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-pen-to-square text-amber-400"></i> JAWABLAH PERTANYAAN DISKUSI KELOMPOK:
+                        </h3>
+
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <label class="block text-slate-300 font-semibold mb-1">1. Gaya apa saja yang bekerja pada jembatan saat dinaiki kendaraan?</label>
+                                <input type="text" id="ref_q1" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white" value="Gaya berat kendaraan (W ke bawah), gaya reaksi penopang (RA & RB ke atas), dan tegangan struktur internal.">
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-300 font-semibold mb-1">2. Bagaimana Hukum I Newton diterapkan pada konstruksi jembatan setimbang?</label>
+                                <input type="text" id="ref_q2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white" value="Jembatan tetap diam karena total resultan gaya luar sama dengan nol (ΣF = 0).">
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-300 font-semibold mb-1">3. Bagaimana massa kendaraan memengaruhi besar gaya berat tekan pada jembatan?</label>
+                                <input type="text" id="ref_q3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white" value="Sesuai W = m·g, semakin besar massa kendaraan, gaya berat tekan berbanding lurus semakin besar.">
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-300 font-semibold mb-1">4. Sebutkan contoh pasangan gaya aksi-reaksi pada simulasi ini!</label>
+                                <input type="text" id="ref_q4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white" value="Gaya roda menekan jembatan ke bawah (Aksi) dan gaya jembatan menopang roda ke atas (Reaksi).">
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-300 font-semibold mb-1">5. Mengapa bentuk segitiga/truss memengaruhi kemampuan menahan beban?</label>
+                                <input type="text" id="ref_q5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white" value="Bentuk segitiga kaku secara geometri sehingga mendistribusikan gaya tekan dan tarik lebih merata.">
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-300 font-semibold mb-1">6. Mengapa desain pertama/awal kelompok mengalami kegagalan atau keberhasilan?</label>
+                                <input type="text" id="ref_q6" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white" value="Karena kekuatan gabungan komponen yang dipasang belum/sudah mencukupi beban uji total.">
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-300 font-semibold mb-1">7. Apa perubahan desain yang paling berpengaruh meningkatkan kekuatan jembatan?</label>
+                                <input type="text" id="ref_q7" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white" value="Penambahan batang diagonal dan kabel baja penahan tarik.">
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-300 font-semibold mb-1">8. Apa hubungan hasil simulasi ini dengan penerapan Hukum Newton pada jembatan dunia nyata?</label>
+                                <input type="text" id="ref_q8" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white" value="Insinyur sipil nyata selalu memperhitungkan batas kesetimbangan gaya dan kekuatan material agar aman.">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Final Action Buttons -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
+                        <button onclick="copyTeamReportText()" class="w-full sm:w-auto px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-copy"></i> COPY TEAM REPORT TO CLIPBOARD
+                        </button>
+                        <button onclick="openTeacherMode()" class="w-full sm:w-auto px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm rounded-xl flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-chalkboard-user"></i> LIHAT RINGKASAN GURU
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* ============================================================
+           REPORT EXPORT & TEACHER MODE
+           ============================================================ */
+        function copyTeamReportText() {
+            saveReflectionAnswers();
+
+            const text = `
+=== LAPORAN TIM BRIDGE ENGINEER (FISIKA XI) ===
+Kelompok: ${gameState.teamName}
+Anggota Tim:
+${gameState.members.map(m => `- ${m.name} (${m.roleTitle})`).join('\n')}
+
+--- HASIL REKAYASA & SIMULASI ---
+- Misi Selesai: 5 / 5
+- Jumlah Percobaan: ${gameState.attempts} Kali
+- Status Akhir Struktur: ${gameState.bridgeStatus}
+- Alasan Desain: ${gameState.decisionReasoning || 'Telah dianalisis'}
+- Distribusi Gaya: ${gameState.distributionReasoning || 'Menggunakan prinsip Rangka Segitiga'}
+
+--- ANALISIS KONSEP HUKUM NEWTON ---
+1. Gaya yang Bekerja: ${gameState.reflectionAnswers.q1}
+2. Penerapan Hukum I Newton: ${gameState.reflectionAnswers.q2}
+3. Pengaruh Massa (Hukum II Newton): ${gameState.reflectionAnswers.q3}
+4. Pasangan Aksi-Reaksi (Hukum III Newton): ${gameState.reflectionAnswers.q4}
+5. Pengaruh Konstruksi Truss: ${gameState.reflectionAnswers.q5}
+6. Evaluasi Percobaan: ${gameState.reflectionAnswers.q6}
+7. Perubahan Paling Berpengaruh: ${gameState.reflectionAnswers.q7}
+8. Penerapan Dunia Nyata: ${gameState.reflectionAnswers.q8}
+
+Diselesaikan pada: ${new Date().toLocaleString('id-ID')}
+            `.trim();
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Laporan Tim berhasil disalin ke clipboard! Silakan kirimkan ke guru Anda.');
+            }).catch(() => {
+                alert('Gagal menyalin otomatis. Silakan gunakan tombol rekap.');
+            });
+        }
+
+        function saveReflectionAnswers() {
+            for (let i = 1; i <= 8; i++) {
+                const el = document.getElementById(`ref_q${i}`);
+                if (el) gameState.reflectionAnswers[`q${i}`] = el.value;
+            }
+            saveState();
+        }
+
+        function openTeacherMode() {
+            saveReflectionAnswers();
+            const content = document.getElementById('teacherSummaryContent');
+            if (content) {
+                content.innerHTML = `
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                        <div class="text-amber-400 font-bold text-sm border-b border-slate-800 pb-1">
+                            REKAP DATA KELOMPOK: ${gameState.teamName}
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-slate-300">
+                            <div>Total Anggota: ${gameState.members.length} Orang</div>
+                            <div>Percobaan Desain: ${gameState.attempts} Kali</div>
+                            <div>Status Jembatan: <span class="text-emerald-400 font-bold">${gameState.bridgeStatus}</span></div>
+                            <div>Anggaran Tersisa: ${gameState.budget} Poin</div>
+                        </div>
+
+                        <div class="border-t border-slate-800 pt-2 space-y-1">
+                            <strong class="text-slate-200">Pembagian Peran Siswa:</strong>
+                            <ul class="list-disc list-inside text-slate-400">
+                                ${gameState.members.map(m => `<li>${m.name} - <span class="text-amber-300">${m.roleTitle}</span></li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="border-t border-slate-800 pt-2 space-y-1">
+                            <strong class="text-slate-200">Alasan & Pemahaman Fisika:</strong>
+                            <p class="text-slate-400 italic">"${gameState.decisionReasoning || 'Siswa telah melengkapi refleksi fisika.'}"</p>
+                        </div>
+                    </div>
+                `;
+            }
+            toggleModal('modal-teacher', true);
+        }
+
+        function nextMission(mNum) {
+            gameState.currentMission = mNum;
+            saveState();
+            updateDashboardHeader();
+            renderMissionStage();
+        }
+
+        /* ============================================================
+           LOCAL STORAGE HELPERS
+           ============================================================ */
+        function saveState() {
+            try {
+                localStorage.setItem('bridge_engineer_state', JSON.stringify(gameState));
+            } catch (e) {}
+        }
+
+        function loadSavedState() {
+            try {
+                const saved = localStorage.getItem('bridge_engineer_state');
+                if (saved) {
+                    gameState = { ...gameState, ...JSON.parse(saved) };
+                }
+            } catch (e) {}
+        }
     </script>
 </body>
 </html>
